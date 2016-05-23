@@ -19,14 +19,16 @@
 int chapasAluminio = CHAPAS;
 int latasBasicas = 0;
 
-
 sem_t mutexChapas;
+sem_t mutexLatasBasicas;
 
 pthread_mutex_t lockChapas       = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t lockLatasBasicas = PTHREAD_MUTEX_INITIALIZER;
 
 pthread_cond_t condFazerLatinhas = PTHREAD_COND_INITIALIZER;
 pthread_cond_t condChapaAluminio = PTHREAD_COND_INITIALIZER;
+
+// Thread máquina de criar chapas de alumínio
 
 void* maqChapaAlumunio(void* id) {
     int i = *((int*)id);
@@ -42,6 +44,8 @@ void* maqChapaAlumunio(void* id) {
         sleep(1);
     }
 }
+
+// Thread máquina de transfomar chapa em lata básica
 
 void* maqFazerLatinha(void* id) {
     int i = *((int*)id);
@@ -65,6 +69,7 @@ int main() {
     pthread_t maq2[MAQ2];
 
     sem_init(&mutexChapas, 0, 1);
+    sem_init(&mutexLatasBasicas, 0, 1);
 
     // Loops para a criação da threads
     for (int i = 0; i < MAQ1; i++) {
