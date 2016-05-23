@@ -51,13 +51,22 @@ void* maqFazerLatinha(void* id) {
     int i = *((int*)id);
     while (TRUE) {
         sem_wait(&mutexChapas);
+        sem_wait(&mutexLatasBasicas);
             if (chapasAluminio >= Y) {
                 chapasAluminio -= Y;
                 latasBasicas += X;
                 printf("MaqFazerLatinha %d, Quantidade de latas: %d\n", i, latasBasicas);
             }
+        sem_post(&mutexLatasBasicas);
         sem_post(&mutexChapas);
         sleep(1);
+    }
+}
+
+void* maqPintarLatinha(void* id) {
+    int i = *((int*)id);
+    while(TRUE) {
+        sem_wait(&mutexLatasBasicas);
     }
 }
 
