@@ -16,9 +16,9 @@
 #define MAQ3 3
 
 // TODO: Colocar nomes que fazem sentido
-#define MINIMO_CHAPAS 10    //
-#define EFICIENCIA_CONVERSAO_CHAPA_LATA 200   //
-#define MINIMO_LATAS_BASICAS 50    //
+#define MINIMO_CHAPAS 10
+#define EFICIENCIA_CONVERSAO_CHAPA_LATA 200
+#define MINIMO_LATAS_BASICAS 50
 
 #define TRUE 1
 
