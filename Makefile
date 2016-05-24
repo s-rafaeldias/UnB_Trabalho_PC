@@ -2,9 +2,10 @@ mode = -std=c99
 nome = main.exe
 lib  = -pthread
 
-all: program
+run: $(nome)
+	./$(nome)
 
-teste: main.o
+compile: main.o
 	gcc $(mode) main.o -o $(nome) $(lib)
 
 main.o: main.c
