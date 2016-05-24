@@ -2,3 +2,4 @@
 /.idea
 CMakeLists.txt
 main.exe
+*.o

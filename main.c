@@ -86,7 +86,7 @@ void* maqPintarLatinha(void* id) {
     }
 }
 
-int main() {
+int main(int argc, char* argv[]) {
 
     int* id;
 
