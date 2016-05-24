@@ -16,9 +16,9 @@
 #define MAQ3 3
 
 // TODO: Colocar nomes que fazem sentido
-#define Y 10
-#define X 200
-#define Z 50
+#define MINIMO_CHAPAS 10    //
+#define EFICIENCIA_CONVERSAO_CHAPA_LATA 200   //
+#define MINIMO_LATAS_BASICAS 50    //
 
 #define TRUE 1
 
@@ -58,9 +58,9 @@ void* maqFazerLatinha(void* id) {
     while (TRUE) {
         sem_wait(&mutexChapas);
         sem_wait(&mutexLatasBasicas);
-            if (chapasAluminio >= Y) {
-                chapasAluminio -= Y;
-                latasBasicas += X;
+            if (chapasAluminio >= MINIMO_CHAPAS) {
+                chapasAluminio -= MINIMO_CHAPAS;
+                latasBasicas += EFICIENCIA_CONVERSAO_CHAPA_LATA;
                 printf("MaqFazerLatinha %d, Quantidade de latas: %d\n", i, latasBasicas);
             }
         sem_post(&mutexLatasBasicas);
@@ -75,9 +75,9 @@ void* maqPintarLatinha(void* id) {
         sem_wait(&mutexLatasBasicas);
         sem_wait(&mutexLatasPintadas);
 
-        if (latasBasicas >= Z) {
-            latasBasicas -= Z;
-            latasPintadas += Z;
+        if (latasBasicas >= MINIMO_LATAS_BASICAS) {
+            latasBasicas -= MINIMO_LATAS_BASICAS;
+            latasPintadas += MINIMO_LATAS_BASICAS;
             printf("Máquina de pintar %d, Quantidade de latas pintadas: %d\n", i, latasPintadas);
         }
 
