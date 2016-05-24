@@ -15,6 +15,7 @@
 #define MAQ2 5
 #define MAQ3 3
 
+// TODO: Colocar nomes que fazem sentido
 #define Y 10
 #define X 200
 #define Z 50
@@ -90,14 +91,17 @@ int main(int argc, char* argv[]) {
 
     int* id;
 
+    // TODO: Lembrar de criar as threads
     pthread_t maq1[MAQ1];
     pthread_t maq2[MAQ2];
     pthread_t maq3[MAQ3];
 
+    // TODO: Lembrar de iniciar os semáforos
     sem_init(&mutexChapas, 0, 1);
     sem_init(&mutexLatasBasicas, 0, 1);
     sem_init(&mutexLatasPintadas, 0, 1);
 
+    // TODO: Lembrar de criar o loop de criação de threads
     // Loops para a criação da threads
     for (int i = 0; i < MAQ1; i++) {
         id = (int*) malloc(sizeof(int));
@@ -115,7 +119,7 @@ int main(int argc, char* argv[]) {
         pthread_create(&maq3[i], NULL, maqPintarLatinha, (void*)id);
     }
 
-
+    // TODO: Dar join nas threads
     // Loop de join das threads
     for (int i = 0; i < MAQ1; i++) {
         pthread_join(maq1[i], NULL);
