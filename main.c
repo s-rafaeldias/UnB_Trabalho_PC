@@ -8,6 +8,8 @@
 #include <zconf.h>
 #include <stdlib.h>
 #include <semaphore.h>
+#include <time.h>
+#include "cicloTempo.h"
 
 #define CHAPAS 100
 
@@ -26,10 +28,13 @@ int chapasAluminio = CHAPAS;
 int latasBasicas = 0;
 int latasPintadas = 0;
 
+int ciclo = 0;
+
 sem_t mutexChapas;
 sem_t mutexLatasBasicas;
 sem_t mutexLatasPintadas;
 
+pthread_barrier_t barreira;
 
 // Thread máquina de criar chapas de alumínio
 void* maqChapaAlumunio(void* id) {
@@ -38,8 +43,8 @@ void* maqChapaAlumunio(void* id) {
         sem_wait(&mutexChapas);
             if (chapasAluminio < CHAPAS) {
                 chapasAluminio += 10;
-                printf("MaqChapaAluminio %d, Quantidade de chapas de aluminio: %d\n", i,
-                       chapasAluminio);
+                //printf("MaqChapaAluminio %d, Quantidade de chapas de aluminio: %d\n", i,
+                // chapasAluminio);
                 sleep(1);
             }
         sem_post(&mutexChapas);
@@ -56,7 +61,7 @@ void* maqFazerLatinha(void* id) {
             if (chapasAluminio >= MINIMO_CHAPAS) {
                 chapasAluminio -= MINIMO_CHAPAS;
                 latasBasicas += EFICIENCIA_CONVERSAO_CHAPA_LATA;
-                printf("MaqFazerLatinha %d, Quantidade de latas: %d\n", i, latasBasicas);
+//                printf("MaqFazerLatinha %d, Quantidade de latas: %d\n", i, latasBasicas);
             }
         sem_post(&mutexLatasBasicas);
         sem_post(&mutexChapas);
@@ -73,12 +78,22 @@ void* maqPintarLatinha(void* id) {
         if (latasBasicas >= MINIMO_LATAS_BASICAS) {
             latasBasicas -= MINIMO_LATAS_BASICAS;
             latasPintadas += MINIMO_LATAS_BASICAS;
-            printf("Máquina de pintar %d, Quantidade de latas pintadas: %d\n", i, latasPintadas);
+//            printf("Máquina de pintar %d, Quantidade de latas pintadas: %d\n", i, latasPintadas);
         }
 
         sem_post(&mutexLatasPintadas);
         sem_post(&mutexLatasBasicas);
         sleep(1);
+    }
+}
+
+void* cicloDeFuncionamento() {
+    int teste = 0;
+    while (TRUE) {
+        if (calculaHora()) {
+            printf("%d\n", teste);
+            teste++;
+        }
     }
 }
 
@@ -91,10 +106,19 @@ int main(int argc, char* argv[]) {
     pthread_t maq2[MAQ2];
     pthread_t maq3[MAQ3];
 
+    pthread_t cicloFuncionamento;
+
     // TODO: Lembrar de iniciar os semáforos
     sem_init(&mutexChapas, 0, 1);
     sem_init(&mutexLatasBasicas, 0, 1);
     sem_init(&mutexLatasPintadas, 0, 1);
+
+    // TODO: Barreira de ciclo de funcionamento
+    pthread_barrier_init(&barreira, NULL, 1);
+
+    startCiclo();
+
+    pthread_create(&cicloFuncionamento, NULL, cicloDeFuncionamento, NULL);
 
     // TODO: Lembrar de criar o loop de criação de threads
     // Loops para a criação da threads

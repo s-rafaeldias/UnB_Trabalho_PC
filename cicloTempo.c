@@ -6,15 +6,12 @@
 #include <time.h>
 #include <string.h>
 
-static int cicloProdução = 0;
-static time_t tempoInicio;
-static time_t tempoFim;
+static int cicloProducao = 0;
 static double countTime = 0;
 static double diffTime = 0;
+static time_t tempoInicio;
+static time_t tempoFim;
 
-void setCicloProducao(char* arg) {
-    cicloProdução = setValues(arg);
-}
 
 int setValues(char* arg) {
     int valorCiclo = atoi(arg);
@@ -23,13 +20,17 @@ int setValues(char* arg) {
     return valorCiclo;
 }
 
+void setCicloProducao(char* arg) {
+    cicloProducao = setValues(arg);
+}
+
 void startCiclo() {
-    tempoInicio = time();
+    tempoInicio = time(NULL);
 }
 
 // TODO: Função para calcular a hora do ciclo
 int calculaHora() {
-    tempoFim = time();
+    tempoFim = time(NULL);
     diffTime = difftime(tempoFim, tempoInicio);
     if (diffTime == countTime) {
         countTime++;
