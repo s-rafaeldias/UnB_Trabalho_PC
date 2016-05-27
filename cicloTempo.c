@@ -12,6 +12,9 @@ static double diffTime = 0;
 static time_t tempoInicio;
 static time_t tempoFim;
 
+int getCicloProducao() {
+    return cicloProducao;
+}
 
 int setValues(char* arg) {
     int valorCiclo = atoi(arg);
@@ -20,8 +23,9 @@ int setValues(char* arg) {
     return valorCiclo;
 }
 
-void setCicloProducao(char* arg) {
-    cicloProducao = setValues(arg);
+void setCicloProducao(int argc, char* argv[]) {
+    if (argc == 2) cicloProducao = setValues(argv[1]);
+    else if (argc == 1) cicloProducao = setValues(NULL);
 }
 
 void startCiclo() {

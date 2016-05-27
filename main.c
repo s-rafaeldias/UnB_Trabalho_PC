@@ -49,6 +49,10 @@ void* maqChapaAlumunio(void* id) {
             }
         sem_post(&mutexChapas);
         sleep(1);
+        
+        if (ciclo == getCicloProducao()) {
+            pthread_exit(0);
+        }
     }
 }
 
@@ -66,6 +70,10 @@ void* maqFazerLatinha(void* id) {
         sem_post(&mutexLatasBasicas);
         sem_post(&mutexChapas);
         sleep(1);
+
+        if (ciclo == getCicloProducao()) {
+            pthread_exit(0);
+        }
     }
 }
 
@@ -84,15 +92,22 @@ void* maqPintarLatinha(void* id) {
         sem_post(&mutexLatasPintadas);
         sem_post(&mutexLatasBasicas);
         sleep(1);
+
+        if (ciclo == getCicloProducao()) {
+            pthread_exit(0);
+        }
     }
 }
 
-void* cicloDeFuncionamento() {
-    int teste = 0;
+void* status_t() {
     while (TRUE) {
         if (calculaHora()) {
-            printf("%d\n", teste);
-            teste++;
+            printf("%d\n", ciclo);
+            ciclo++;
+        }
+
+        if (ciclo == getCicloProducao()) {
+            pthread_exit(0);
         }
     }
 }
@@ -106,7 +121,7 @@ int main(int argc, char* argv[]) {
     pthread_t maq2[MAQ2];
     pthread_t maq3[MAQ3];
 
-    pthread_t cicloFuncionamento;
+    pthread_t status;
 
     // TODO: Lembrar de iniciar os semáforos
     sem_init(&mutexChapas, 0, 1);
@@ -116,9 +131,11 @@ int main(int argc, char* argv[]) {
     // TODO: Barreira de ciclo de funcionamento
     pthread_barrier_init(&barreira, NULL, 1);
 
+    setCicloProducao(argc, argv);
+
     startCiclo();
 
-    pthread_create(&cicloFuncionamento, NULL, cicloDeFuncionamento, NULL);
+    pthread_create(&status, NULL, status_t, NULL);
 
     // TODO: Lembrar de criar o loop de criação de threads
     // Loops para a criação da threads
