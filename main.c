@@ -30,11 +30,6 @@ sem_t mutexChapas;
 sem_t mutexLatasBasicas;
 sem_t mutexLatasPintadas;
 
-pthread_mutex_t lockChapas       = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t lockLatasBasicas = PTHREAD_MUTEX_INITIALIZER;
-
-pthread_cond_t condFazerLatinhas = PTHREAD_COND_INITIALIZER;
-pthread_cond_t condChapaAluminio = PTHREAD_COND_INITIALIZER;
 
 // Thread máquina de criar chapas de alumínio
 void* maqChapaAlumunio(void* id) {

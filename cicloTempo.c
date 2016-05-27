@@ -6,21 +6,34 @@
 #include <time.h>
 #include <string.h>
 
-static int cicloProdução;
+static int cicloProdução = 0;
+static time_t tempoInicio;
+static time_t tempoFim;
+static double countTime = 0;
+static double diffTime = 0;
 
-void setParams(char* arg) {
-    cicloProdução = setArguments(arg);
+void setCicloProducao(char* arg) {
+    cicloProdução = setValues(arg);
 }
 
-// TODO: Criar funcao para verificar o valor do ciclo, que foi recebido como argumento do make
-int setArguments(char* arg) {
+int setValues(char* arg) {
     int valorCiclo = atoi(arg);
     if (valorCiclo == 0) return 0;
     if (arg == NULL) return 24; // Ciclo default de 24h
     return valorCiclo;
 }
 
-// TODO: Criar funcao para startar o ciclo de produção
+void startCiclo() {
+    tempoInicio = time();
+}
 
-
-// TODO:
+// TODO: Função para calcular a hora do ciclo
+int calculaHora() {
+    tempoFim = time();
+    diffTime = difftime(tempoFim, tempoInicio);
+    if (diffTime == countTime) {
+        countTime++;
+        return 1;
+    }
+    return 0;
+}
