@@ -8,6 +8,8 @@
 #include <zconf.h>
 #include <stdlib.h>
 #include <semaphore.h>
+#include <time.h>
+#include "cicloTempo.h"
 
 #define CHAPAS 100
 
@@ -16,9 +18,9 @@
 #define MAQ3 3
 
 // TODO: Colocar nomes que fazem sentido
-#define Y 10
-#define X 200
-#define Z 50
+#define MINIMO_CHAPAS 10
+#define EFICIENCIA_CONVERSAO_CHAPA_LATA 200
+#define MINIMO_LATAS_BASICAS 50
 
 #define TRUE 1
 
@@ -26,65 +28,109 @@ int chapasAluminio = CHAPAS;
 int latasBasicas = 0;
 int latasPintadas = 0;
 
+int ciclo = 0;
+
 sem_t mutexChapas;
 sem_t mutexLatasBasicas;
 sem_t mutexLatasPintadas;
 
-pthread_mutex_t lockChapas       = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t lockLatasBasicas = PTHREAD_MUTEX_INITIALIZER;
-
-pthread_cond_t condFazerLatinhas = PTHREAD_COND_INITIALIZER;
-pthread_cond_t condChapaAluminio = PTHREAD_COND_INITIALIZER;
+pthread_barrier_t barreira;
 
 // Thread máquina de criar chapas de alumínio
 void* maqChapaAlumunio(void* id) {
+
     int i = *((int*)id);
+
     while (TRUE) {
         sem_wait(&mutexChapas);
-            if (chapasAluminio < CHAPAS) {
-                chapasAluminio += 10;
-                printf("MaqChapaAluminio %d, Quantidade de chapas de aluminio: %d\n", i,
-                       chapasAluminio);
-                sleep(1);
-            }
+
+        if (chapasAluminio < CHAPAS) {
+            chapasAluminio += 10;
+            sleep(1);
+        }
+
         sem_post(&mutexChapas);
         sleep(1);
+
+        // Quando o ciclo de trabalho estiver completo, encerra a thread
+        if (ciclo == getCicloProducao()) {
+            pthread_exit(0);
+        }
+
     }
+
 }
 
 // Thread máquina de transfomar chapa em lata básica
 void* maqFazerLatinha(void* id) {
+
     int i = *((int*)id);
+
     while (TRUE) {
         sem_wait(&mutexChapas);
         sem_wait(&mutexLatasBasicas);
-            if (chapasAluminio >= Y) {
-                chapasAluminio -= Y;
-                latasBasicas += X;
-                printf("MaqFazerLatinha %d, Quantidade de latas: %d\n", i, latasBasicas);
-            }
+
+        if (chapasAluminio >= MINIMO_CHAPAS) {
+            chapasAluminio -= MINIMO_CHAPAS;
+            latasBasicas += EFICIENCIA_CONVERSAO_CHAPA_LATA;
+        }
+
         sem_post(&mutexLatasBasicas);
         sem_post(&mutexChapas);
         sleep(1);
+
+        // Quando o ciclo de trabalho estiver completo, encerra a thread
+        if (ciclo == getCicloProducao()) {
+            pthread_exit(0);
+        }
+
     }
+
 }
 
 void* maqPintarLatinha(void* id) {
+
     int i = *((int*)id);
+
     while(TRUE) {
+
         sem_wait(&mutexLatasBasicas);
         sem_wait(&mutexLatasPintadas);
 
-        if (latasBasicas >= Z) {
-            latasBasicas -= Z;
-            latasPintadas += Z;
-            printf("Máquina de pintar %d, Quantidade de latas pintadas: %d\n", i, latasPintadas);
+        if (latasBasicas >= MINIMO_LATAS_BASICAS) {
+            latasBasicas -= MINIMO_LATAS_BASICAS;
+            latasPintadas += MINIMO_LATAS_BASICAS;
         }
 
         sem_post(&mutexLatasPintadas);
         sem_post(&mutexLatasBasicas);
         sleep(1);
+
+        // Quando o ciclo de trabalho estiver completo, encerra a thread
+        if (ciclo == getCicloProducao()) {
+            pthread_exit(0);
+        }
+
     }
+
+}
+
+// Thread que verifica o status do ciclo de operação. A cada hora,
+void* status_t() {
+
+    while (TRUE) {
+
+        if (calculaHora()) {
+            printf("%d\n", ciclo);
+            ciclo++;
+        }
+
+        if (ciclo == getCicloProducao()) {
+            pthread_exit(0);
+        }
+
+    }
+
 }
 
 int main(int argc, char* argv[]) {
@@ -96,10 +142,21 @@ int main(int argc, char* argv[]) {
     pthread_t maq2[MAQ2];
     pthread_t maq3[MAQ3];
 
+    pthread_t status;
+
     // TODO: Lembrar de iniciar os semáforos
     sem_init(&mutexChapas, 0, 1);
     sem_init(&mutexLatasBasicas, 0, 1);
     sem_init(&mutexLatasPintadas, 0, 1);
+
+    // TODO: Barreira de ciclo de funcionamento
+    pthread_barrier_init(&barreira, NULL, 1);
+
+    setCicloProducao(argc, argv);
+
+    startCiclo();
+
+    pthread_create(&status, NULL, status_t, NULL);
 
     // TODO: Lembrar de criar o loop de criação de threads
     // Loops para a criação da threads

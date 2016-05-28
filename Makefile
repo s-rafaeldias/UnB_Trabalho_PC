@@ -1,15 +1,20 @@
-mode = -std=c99
-nome = main.exe
+mode = -std=gnu99
+name = main.exe
 lib  = -pthread
+ciclo = 24
 
-run: $(nome)
-	./$(nome)
 
-compile: main.o
-	gcc $(mode) main.o -o $(nome) $(lib)
+run: $(name)
+	./$(name) $(ciclo)
+
+compile: main.o cicloTempo.o
+	gcc $(mode) main.o cicloTempo.o -o $(name) $(lib)
 
 main.o: main.c
 	gcc $(mode) main.c -c $(lib)
+
+cicloTempo.o: cicloTempo.h cicloTempo.c
+	gcc $(mode) cicloTempo.c -c
 
 clean:
 	rm *.o
