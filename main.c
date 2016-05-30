@@ -30,6 +30,10 @@ int latasPintadas  = 0;
 
 int ciclo = 0;
 
+Historico logMaq1[MAQ1];
+Historico logMaq2[MAQ2];
+Historico logMaq3[MAQ3];
+
 sem_t mutexChapas;
 sem_t mutexLatasBasicas;
 sem_t mutexLatasPintadas;
@@ -83,6 +87,7 @@ void* maqPintarLatinha(void* id) {
         if (latasBasicas >= MINIMO_LATAS_BASICAS) {
             latasBasicas -= MINIMO_LATAS_BASICAS;
             latasPintadas += MINIMO_LATAS_BASICAS;
+
         }
         sem_post(&mutexLatasPintadas);
         sem_post(&mutexLatasBasicas);
@@ -110,10 +115,6 @@ int main(int argc, char* argv[]) {
 
     int* id;
 
-    Historico logMaq1[MAQ1];
-    Historico logMaq2[MAQ2];
-    Historico logMaq3[MAQ3];
-
     // TODO: Lembrar de criar as threads
     pthread_t maq1[MAQ1];
     pthread_t maq2[MAQ2];
@@ -140,24 +141,18 @@ int main(int argc, char* argv[]) {
         *id = i;
         pthread_create(&maq1[i], NULL, maqChapaAlumunio, (void*)id);
         logMaq1[i].id   = i;
-        logMaq1[i].hora = 0;
-        logMaq1[i].prod = 0;
     }
     for (int i = 0; i < MAQ2; i++) {
         id = (int*) malloc(sizeof(int));
         *id = i;
         pthread_create(&maq2[i], NULL, maqFazerLatinha, (void*)id);
         logMaq2[i].id   = i;
-        logMaq2[i].hora = 0;
-        logMaq2[i].prod = 0;
     }
     for (int i = 0; i < MAQ3; i++) {
         id = (int*) malloc(sizeof(int));
         *id = i;
         pthread_create(&maq3[i], NULL, maqPintarLatinha, (void*)id);
         logMaq3[i].id   = i;
-        logMaq3[i].hora = 0;
-        logMaq3[i].prod = 0;
     }
 
     pthread_create(&status, NULL, cicloOperacao, NULL);
