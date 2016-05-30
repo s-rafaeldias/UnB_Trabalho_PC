@@ -5,24 +5,8 @@
 #ifndef TRABALHOPC_LOG_H
 #define TRABALHOPC_LOG_H
 
-#ifndef STRUCT_LOG
-#define STRUCT_LOG
+void baseLog(int hora);
 
-typedef struct {
-    int hora;
-    int prod;
-}Log;
-
-#endif // STRUCT_LOG
-
-#ifndef STRUCT_LOG_MAQ
-#define STRUCT_LOG_MAQ
-
-typedef struct {
-    int id;
-    Log log;
-}Historico;
-
-#endif // STRUCT_LOG_MAQ
+void printaLog(int prod1, int prod2, int prod3);
 
 #endif // TRABALHOPC_LOG_H

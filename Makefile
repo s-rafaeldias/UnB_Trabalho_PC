@@ -16,7 +16,7 @@ cicloTempo.o: cicloTempo.h cicloTempo.c
 	gcc $(mode) cicloTempo.c -c
 
 log.o: log.h log.c
-	gcc $(mode) log.c -c
+	gcc $(mode) log.c -c $(lib)
 
 clean:
-	rm *.o
+	rm *.o *.csv

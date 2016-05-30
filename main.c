@@ -28,27 +28,42 @@ int chapasAluminio = CHAPAS;
 int latasBasicas   = 0;
 int latasPintadas  = 0;
 
-int ciclo = 0;
+int prodMaq1 = 0;
+int prodMaq2 = 0;
+int prodMaq3 = 0;
 
-Historico logMaq1[MAQ1];
-Historico logMaq2[MAQ2];
-Historico logMaq3[MAQ3];
+int ciclo = 0;
 
 sem_t mutexChapas;
 sem_t mutexLatasBasicas;
 sem_t mutexLatasPintadas;
 
+sem_t mutexProdMaq1;
+sem_t mutexProdMaq2;
+sem_t mutexProdMaq3;
+
 pthread_barrier_t barreira;
 
 // Thread máquina de criar chapas de alumínio
 void* maqChapaAlumunio(void* id) {
+
     int i = *((int*)id);
+
     while (TRUE) {
+
         sem_wait(&mutexChapas);
+
         if (chapasAluminio < CHAPAS) {
             chapasAluminio += 10;
+
+            sem_wait(&mutexProdMaq1);
+                prodMaq1 += 10;
+            sem_post(&mutexProdMaq1);
+
             sleep(1);
+
         }
+
         sem_post(&mutexChapas);
 
         // Quando o ciclo de trabalho estiver completo, encerra a thread
@@ -60,14 +75,24 @@ void* maqChapaAlumunio(void* id) {
 
 // Thread máquina de transfomar chapa em lata básica
 void* maqFazerLatinha(void* id) {
+
     int i = *((int*)id);
+
     while (TRUE) {
+
         sem_wait(&mutexChapas);
         sem_wait(&mutexLatasBasicas);
+
         if (chapasAluminio >= MINIMO_CHAPAS) {
             chapasAluminio -= MINIMO_CHAPAS;
             latasBasicas += EFICIENCIA_CONVERSAO_CHAPA_LATA;
+
+            sem_wait(&mutexProdMaq2);
+                prodMaq2 += EFICIENCIA_CONVERSAO_CHAPA_LATA;
+            sem_post(&mutexProdMaq2);
+
         }
+
         sem_post(&mutexLatasBasicas);
         sem_post(&mutexChapas);
 
@@ -87,7 +112,6 @@ void* maqPintarLatinha(void* id) {
         if (latasBasicas >= MINIMO_LATAS_BASICAS) {
             latasBasicas -= MINIMO_LATAS_BASICAS;
             latasPintadas += MINIMO_LATAS_BASICAS;
-
         }
         sem_post(&mutexLatasPintadas);
         sem_post(&mutexLatasBasicas);
@@ -104,6 +128,7 @@ void* cicloOperacao() {
     while (TRUE) {
         if (calculaHora()) {
             ciclo++;
+            printaLog(prodMaq2);
         }
         if (ciclo == getCicloProducao()) {
             pthread_exit(0);
@@ -127,6 +152,10 @@ int main(int argc, char* argv[]) {
     sem_init(&mutexLatasBasicas, 0, 1);
     sem_init(&mutexLatasPintadas, 0, 1);
 
+    sem_init(&mutexProdMaq1, 0, 1);
+    sem_init(&mutexProdMaq2, 0, 1);
+    sem_init(&mutexProdMaq3, 0, 1);
+
     // TODO: Barreira de ciclo de funcionamento
     pthread_barrier_init(&barreira, NULL, 11);
 
@@ -134,25 +163,24 @@ int main(int argc, char* argv[]) {
 
     startCiclo();
 
+    baseLog(getCicloProducao());
+
     // TODO: Lembrar de criar o loop de criação de threads
     // Loops para a criação da threads
     for (int i = 0; i < MAQ1; i++) {
         id = (int*) malloc(sizeof(int));
         *id = i;
         pthread_create(&maq1[i], NULL, maqChapaAlumunio, (void*)id);
-        logMaq1[i].id   = i;
     }
     for (int i = 0; i < MAQ2; i++) {
         id = (int*) malloc(sizeof(int));
         *id = i;
         pthread_create(&maq2[i], NULL, maqFazerLatinha, (void*)id);
-        logMaq2[i].id   = i;
     }
     for (int i = 0; i < MAQ3; i++) {
         id = (int*) malloc(sizeof(int));
         *id = i;
         pthread_create(&maq3[i], NULL, maqPintarLatinha, (void*)id);
-        logMaq3[i].id   = i;
     }
 
     pthread_create(&status, NULL, cicloOperacao, NULL);
@@ -170,6 +198,7 @@ int main(int argc, char* argv[]) {
     }
     pthread_join(status, NULL);
 
+    //printaLog(prodMaq2);
     printf("Chapas Aluminio: %d\nLatas Basicas: %d\nLatas Pintadas: %d\n", chapasAluminio, latasBasicas, latasPintadas);
 
     return 0;
