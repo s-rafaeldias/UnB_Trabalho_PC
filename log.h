@@ -5,8 +5,8 @@
 #ifndef TRABALHOPC_LOG_H
 #define TRABALHOPC_LOG_H
 
+void* preecheBase(void* id);
 void baseLog(int hora);
-
-void printaLog(int prod1, int prod2, int prod3);
+void printaLog(int prod, char* fileName);
 
 #endif // TRABALHOPC_LOG_H

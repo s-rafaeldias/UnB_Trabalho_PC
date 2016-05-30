@@ -105,14 +105,25 @@ void* maqFazerLatinha(void* id) {
 
 // Thread máquina de pintar latas
 void* maqPintarLatinha(void* id) {
+
     int i = *((int*)id);
+
     while(TRUE) {
+
         sem_wait(&mutexLatasBasicas);
         sem_wait(&mutexLatasPintadas);
+
         if (latasBasicas >= MINIMO_LATAS_BASICAS) {
+
             latasBasicas -= MINIMO_LATAS_BASICAS;
             latasPintadas += MINIMO_LATAS_BASICAS;
+
+            sem_wait(&mutexProdMaq3);
+                prodMaq3 += MINIMO_LATAS_BASICAS;
+            sem_post(&mutexProdMaq3);
+
         }
+
         sem_post(&mutexLatasPintadas);
         sem_post(&mutexLatasBasicas);
 
@@ -120,7 +131,9 @@ void* maqPintarLatinha(void* id) {
         if (ciclo == getCicloProducao()) {
             pthread_exit(0);
         }
+
     }
+
 }
 
 // Thread que verifica o status do ciclo de operação. A cada hora,
@@ -128,7 +141,7 @@ void* cicloOperacao() {
     while (TRUE) {
         if (calculaHora()) {
             ciclo++;
-            printaLog(prodMaq2);
+            //printaLog(prodMaq1, prodMaq2, prodMaq3);
         }
         if (ciclo == getCicloProducao()) {
             pthread_exit(0);
@@ -198,8 +211,7 @@ int main(int argc, char* argv[]) {
     }
     pthread_join(status, NULL);
 
-    //printaLog(prodMaq2);
-    printf("Chapas Aluminio: %d\nLatas Basicas: %d\nLatas Pintadas: %d\n", chapasAluminio, latasBasicas, latasPintadas);
+    //printf("Chapas Aluminio: %d\nLatas Basicas: %d\nLatas Pintadas: %d\n", chapasAluminio, latasBasicas, latasPintadas);
 
     return 0;
 

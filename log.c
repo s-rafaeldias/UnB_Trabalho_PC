@@ -3,30 +3,31 @@
 //
 
 #include <stdio.h>
-#include <pthread.h>
 #include "log.h"
 
-void baseLog(int hora) {
-    FILE* saida = fopen("log.csv", "w+");
+static FILE* saida;
 
-    fprintf(saida, "Hora:,");
+static void preencheBase(int hora) {
+
+    fprintf("Hora:,");
+
     for (int i = 0; i < hora; i++) {
-        fprintf(saida, "%d,", i+1);
+        fprintf("%d,", i+1);
     }
 
-    fprintf(saida, "\n");
-    fprintf(saida, "Prod:,");
-
-    fclose(saida);
+    fprintf(f, "\n");
+    fprintf(f, "Prod:,");
 }
 
-void printaLog(int prod1, int prod2, int prod3) {
 
-    pthread_t printStatus[3];
+void baseLog(int hora) {
 
-    for (int i = 0; i < 3; i++) {
-        pthread_create(&printStatus[i], NULL, , NULL);
-    }
+
+}
+
+void printaLog(int prod, char* fileName) {
+
+
 
 }
 
