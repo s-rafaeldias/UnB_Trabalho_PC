@@ -3,7 +3,6 @@ name = main.exe
 lib  = -pthread
 ciclo = 24
 
-
 run: $(name)
 	./$(name) $(ciclo)
 

@@ -1,10 +1,6 @@
 #include <pthread.h>
-#include <stdio.h>
-#include <zconf.h>
 #include <stdlib.h>
-#include <semaphore.h>
-#include <time.h>
-#include <string.h>
+#include "cicloTempo.h"
 
 static int cicloProducao = 0;
 static double countTime = 0;

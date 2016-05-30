@@ -8,7 +8,6 @@
 #include <zconf.h>
 #include <stdlib.h>
 #include <semaphore.h>
-#include <time.h>
 #include "cicloTempo.h"
 
 #define CHAPAS 100
@@ -38,99 +37,73 @@ pthread_barrier_t barreira;
 
 // Thread máquina de criar chapas de alumínio
 void* maqChapaAlumunio(void* id) {
-
     int i = *((int*)id);
-
     while (TRUE) {
         sem_wait(&mutexChapas);
-
         if (chapasAluminio < CHAPAS) {
             chapasAluminio += 10;
             sleep(1);
         }
-
         sem_post(&mutexChapas);
         sleep(1);
-
         // Quando o ciclo de trabalho estiver completo, encerra a thread
         if (ciclo == getCicloProducao()) {
             pthread_exit(0);
         }
-
     }
-
 }
 
 // Thread máquina de transfomar chapa em lata básica
 void* maqFazerLatinha(void* id) {
-
     int i = *((int*)id);
-
     while (TRUE) {
         sem_wait(&mutexChapas);
         sem_wait(&mutexLatasBasicas);
-
         if (chapasAluminio >= MINIMO_CHAPAS) {
             chapasAluminio -= MINIMO_CHAPAS;
             latasBasicas += EFICIENCIA_CONVERSAO_CHAPA_LATA;
         }
-
         sem_post(&mutexLatasBasicas);
         sem_post(&mutexChapas);
         sleep(1);
-
         // Quando o ciclo de trabalho estiver completo, encerra a thread
         if (ciclo == getCicloProducao()) {
             pthread_exit(0);
         }
-
     }
-
 }
 
+// Thread máquina de pintar latas
 void* maqPintarLatinha(void* id) {
-
     int i = *((int*)id);
-
     while(TRUE) {
-
         sem_wait(&mutexLatasBasicas);
         sem_wait(&mutexLatasPintadas);
-
         if (latasBasicas >= MINIMO_LATAS_BASICAS) {
             latasBasicas -= MINIMO_LATAS_BASICAS;
             latasPintadas += MINIMO_LATAS_BASICAS;
         }
-
         sem_post(&mutexLatasPintadas);
         sem_post(&mutexLatasBasicas);
         sleep(1);
-
         // Quando o ciclo de trabalho estiver completo, encerra a thread
         if (ciclo == getCicloProducao()) {
             pthread_exit(0);
         }
-
     }
-
 }
 
 // Thread que verifica o status do ciclo de operação. A cada hora,
-void* status_t() {
-
+void* cicloOperacao() {
     while (TRUE) {
-
         if (calculaHora()) {
             printf("%d\n", ciclo);
             ciclo++;
         }
-
         if (ciclo == getCicloProducao()) {
             pthread_exit(0);
         }
-
     }
-
 }
 
 int main(int argc, char* argv[]) {
@@ -156,7 +129,7 @@ int main(int argc, char* argv[]) {
 
     startCiclo();
 
-    pthread_create(&status, NULL, status_t, NULL);
+    pthread_create(&status, NULL, cicloOperacao, NULL);
 
     // TODO: Lembrar de criar o loop de criação de threads
     // Loops para a criação da threads
