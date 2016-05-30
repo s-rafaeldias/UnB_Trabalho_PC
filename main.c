@@ -28,7 +28,6 @@ int latasBasicas   = 0;
 int latasPintadas  = 0;
 
 int ciclo = 0;
-int flag = 0;
 
 sem_t mutexChapas;
 sem_t mutexLatasBasicas;
@@ -114,7 +113,7 @@ int main(int argc, char* argv[]) {
     pthread_t maq1[MAQ1];
     pthread_t maq2[MAQ2];
     pthread_t maq3[MAQ3];
-    
+
     pthread_t status;
 
     // TODO: Lembrar de iniciar os semáforos
