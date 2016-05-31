@@ -13,9 +13,9 @@
 
 #define CHAPAS 100
 
-#define MAQ1 3
-#define MAQ2 5
-#define MAQ3 3
+#define MAQ1 4
+#define MAQ2 7
+#define MAQ3 10
 
 // TODO: Colocar nomes que fazem sentido
 #define MINIMO_CHAPAS 10
@@ -110,8 +110,8 @@ void* maqPintarLatinha(void* id) {
 
     while(TRUE) {
 
-        sem_wait(&mutexLatasBasicas);
         sem_wait(&mutexLatasPintadas);
+        sem_wait(&mutexLatasBasicas);
 
         if (latasBasicas >= MINIMO_LATAS_BASICAS) {
 
@@ -124,8 +124,8 @@ void* maqPintarLatinha(void* id) {
 
         }
 
-        sem_post(&mutexLatasPintadas);
         sem_post(&mutexLatasBasicas);
+        sem_post(&mutexLatasPintadas);
 
         // Quando o ciclo de trabalho estiver completo, encerra a thread
         if (ciclo == getCicloProducao()) {
@@ -147,9 +147,6 @@ void* cicloOperacao() {
                 printaLog(prodMaq1, 0);
                 printaLog(prodMaq2, 1);
                 printaLog(prodMaq3, 2);
-                prodMaq1 = 0;
-                prodMaq2 = 0;
-                prodMaq3 = 0;
             sem_post(&mutexProdMaq3);
             sem_post(&mutexProdMaq2);
             sem_post(&mutexProdMaq1);
@@ -222,8 +219,13 @@ int main(int argc, char* argv[]) {
     }
     pthread_join(status, NULL);
 
-    //printf("Chapas Aluminio: %d\nLatas Basicas: %d\nLatas Pintadas: %d\n", chapasAluminio, latasBasicas, latasPintadas);
+    printaLog(prodMaq1, 0);
+    printaLog(prodMaq2, 1);
+    printaLog(prodMaq3, 2);
 
+    printf("Chapas Aluminio: %d\n"
+                   "Latas Basicas: %d\n"
+                   "Latas Pintadas: %d\n", prodMaq1, prodMaq2, prodMaq3);
 
 
     encerraTudo();
