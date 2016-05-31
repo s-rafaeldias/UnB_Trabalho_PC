@@ -3,7 +3,9 @@ name = main.exe
 lib  = -pthread
 ciclo = 24
 
-run: $(name)
+all: compile run run_clean
+
+run: $(name) run_clean
 	./$(name) $(ciclo)
 
 compile: main.o cicloTempo.o log.o
@@ -18,5 +20,8 @@ cicloTempo.o: cicloTempo.h cicloTempo.c
 log.o: log.h log.c
 	gcc $(mode) log.c -c $(lib)
 
-clean:
-	rm *.o *.csv
+full_clean:
+	rm *.o *.csv *.exe
+
+run_clean:
+	rm *.o
