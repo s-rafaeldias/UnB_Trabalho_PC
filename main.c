@@ -60,8 +60,6 @@ void* maqChapaAlumunio(void* id) {
                 prodMaq1 += 10;
             sem_post(&mutexProdMaq1);
 
-            sleep(1);
-
         }
 
         sem_post(&mutexChapas);
@@ -140,21 +138,35 @@ void* maqPintarLatinha(void* id) {
 void* cicloOperacao() {
     while (TRUE) {
         if (calculaHora()) {
+
             ciclo++;
+
             sem_wait(&mutexProdMaq1);
             sem_wait(&mutexProdMaq2);
             sem_wait(&mutexProdMaq3);
+
                 printaLog(prodMaq1, 0);
                 printaLog(prodMaq2, 1);
                 printaLog(prodMaq3, 2);
+
+                prodMaq1 = 0;
+                prodMaq2 = 0;
+                prodMaq3 = 0;
+
             sem_post(&mutexProdMaq3);
             sem_post(&mutexProdMaq2);
             sem_post(&mutexProdMaq1);
+
         }
+
         if (ciclo == getCicloProducao()) {
+
             pthread_exit(0);
+
         }
+
     }
+
 }
 
 int main(int argc, char* argv[]) {
