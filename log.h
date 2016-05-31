@@ -7,6 +7,7 @@
 
 void* preecheBase(void* id);
 void baseLog(int hora);
-void printaLog(int prod, char* fileName);
+void printaLog(int prod, int i);
+void encerraTudo();
 
 #endif // TRABALHOPC_LOG_H
