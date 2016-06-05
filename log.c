@@ -10,13 +10,6 @@ static FILE* saida2;
 static FILE* saida3;
 static FILE* saida4;
 
-static void fechaFiles() {
-
-}
-
-static void abreFiles() {
-
-}
 
 static void preencheBase(int hora, FILE* f) {
 

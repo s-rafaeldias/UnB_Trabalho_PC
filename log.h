@@ -5,7 +5,6 @@
 #ifndef TRABALHOPC_LOG_H
 #define TRABALHOPC_LOG_H
 
-void* preecheBase(void* id);
 void baseLog(int hora);
 void printaLog(int prod, int i);
 void encerraTudo();

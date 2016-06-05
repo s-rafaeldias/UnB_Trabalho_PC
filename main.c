@@ -4,8 +4,6 @@
 //
 
 #include <pthread.h>
-#include <stdio.h>
-#include <zconf.h>
 #include <stdlib.h>
 #include <semaphore.h>
 #include "cicloTempo.h"
@@ -18,13 +16,10 @@
 #define MAQ3 10
 #define MAQ4 5
 
-// TODO: Colocar nomes que fazem sentido
 #define MINIMO_CHAPAS 10
 #define EFICIENCIA_CONVERSAO_CHAPA_LATA 200
 #define MINIMO_LATAS_BASICAS 50
 #define  MINIMO_LATAS_TRANSPORTE 500
-
-#define MAX_CAMINHAO 2
 
 #define TRUE 1
 
@@ -74,7 +69,9 @@ void* maqChapaAlumunio(void* id) {
         if (ciclo == getCicloProducao()) {
             pthread_exit(0);
         }
+
     }
+
 }
 
 // Thread máquina de transfomar chapa em lata básica
@@ -104,7 +101,9 @@ void* maqFazerLatinha(void* id) {
         if (ciclo == getCicloProducao()) {
             pthread_exit(0);
         }
+
     }
+
 }
 
 // Thread máquina de pintar latas
@@ -141,9 +140,13 @@ void* maqPintarLatinha(void* id) {
 }
 
 void* transporteLata() {
+
     while(TRUE) {
+
         sem_wait(&mutexLatasPintadas);
+
         if (latasPintadas >= MINIMO_LATAS_TRANSPORTE) {
+
             latasPintadas -= MINIMO_LATAS_TRANSPORTE;
 
             sem_wait(&mutexProdTrans);
@@ -159,12 +162,16 @@ void* transporteLata() {
         if (ciclo == getCicloProducao()) {
             pthread_exit(0);
         }
+
     }
+
 }
 
 // Thread que verifica o status do ciclo de operação. A cada hora,
 void* cicloOperacao() {
+
     while (TRUE) {
+
         if (calculaHora()) {
 
             ciclo++;
@@ -192,9 +199,7 @@ void* cicloOperacao() {
         }
 
         if (ciclo == getCicloProducao()) {
-
             pthread_exit(0);
-
         }
 
     }
@@ -205,7 +210,6 @@ int main(int argc, char* argv[]) {
 
     int* id;
 
-    // TODO: Lembrar de criar as threads
     pthread_t maq1[MAQ1];
     pthread_t maq2[MAQ2];
     pthread_t maq3[MAQ3];
@@ -213,7 +217,6 @@ int main(int argc, char* argv[]) {
 
     pthread_t status;
 
-    // TODO: Lembrar de iniciar os semáforos
     sem_init(&mutexChapas, 0, 1);
     sem_init(&mutexLatasBasicas, 0, 1);
     sem_init(&mutexLatasPintadas, 0, 1);
@@ -223,7 +226,6 @@ int main(int argc, char* argv[]) {
     sem_init(&mutexProdMaq3, 0, 1);
     sem_init(&mutexProdTrans, 0, 1);
 
-    // TODO: Barreira de ciclo de funcionamento
     pthread_barrier_init(&barreiraTransporte, NULL, MAQ4);
 
     setCicloProducao(argc, argv);
@@ -232,7 +234,6 @@ int main(int argc, char* argv[]) {
 
     baseLog(getCicloProducao());
 
-    // TODO: Lembrar de criar o loop de criação de threads
     // Loops para a criação da threads
     for (int i = 0; i < MAQ1; i++) {
         id = (int*) malloc(sizeof(int));
@@ -256,7 +257,6 @@ int main(int argc, char* argv[]) {
     pthread_create(&status, NULL, cicloOperacao, NULL);
 
 
-    // TODO: Dar join nas threads
     // Loop de join das threads
     for (int i = 0; i < MAQ1; i++) {
         pthread_join(maq1[i], NULL);
@@ -272,7 +272,7 @@ int main(int argc, char* argv[]) {
     }
 
     pthread_join(status, NULL);
-    
+
     printaLog(prodMaq1, 0);
     printaLog(prodMaq2, 1);
     printaLog(prodMaq3, 2);
