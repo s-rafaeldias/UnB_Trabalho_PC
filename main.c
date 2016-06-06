@@ -20,7 +20,8 @@
 #define MINIMO_CHAPAS 20
 #define EFICIENCIA_CONVERSAO_CHAPA_LATA 200
 #define MINIMO_LATAS_BASICAS 50
-#define  MINIMO_LATAS_TRANSPORTE 500
+#define MINIMO_LATAS_TRANSPORTE 500
+#define ECONOMIA_ENERGIA 70
 
 #define TRUE 1
 
@@ -68,12 +69,10 @@ void* maqChapaAlumunio(void* id) {
                 prodMaq1 += 10;
             sem_post(&mutexProdMaq1);
         }
-        if (chapasAluminio >= 50) {
+        if (chapasAluminio >= ECONOMIA_ENERGIA) {
             pthread_cond_wait(&condChapas, &mutexChapas);
         }
         pthread_mutex_unlock(&mutexChapas);
-
-
 
         // Quando o ciclo de trabalho estiver completo, encerra a thread
         if (ciclo == getCicloProducao()) {

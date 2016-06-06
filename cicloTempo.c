@@ -28,7 +28,6 @@ void startCiclo() {
     tempoInicio = time(NULL);
 }
 
-// TODO: Função para calcular a hora do ciclo
 int calculaHora() {
     tempoFim = time(NULL);
     diffTime = difftime(tempoFim, tempoInicio);
