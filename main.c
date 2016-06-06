@@ -17,7 +17,7 @@
 #define MAQ3 10 // Quantidade de Threads da máquina de pintar latas
 #define MAQ4 5  // Quantidade de Threads de caminhões de transporte
 
-#define MINIMO_CHAPAS 10
+#define MINIMO_CHAPAS 20
 #define EFICIENCIA_CONVERSAO_CHAPA_LATA 200
 #define MINIMO_LATAS_BASICAS 50
 #define  MINIMO_LATAS_TRANSPORTE 500
@@ -37,15 +37,21 @@ int prodTrans = 0;
 // Variável para controle de ciclo de produção
 int ciclo = 0;
 
-sem_t mutexChapas;
-sem_t mutexLatasBasicas;
-sem_t mutexLatasPintadas;
+pthread_mutex_t mutexChapas = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t condChapas   = PTHREAD_COND_INITIALIZER;
 
-sem_t mutexProdMaq1;
-sem_t mutexProdMaq2;
-sem_t mutexProdMaq3;
-sem_t mutexProdTrans;
+// Semáforos utilizados como locks
+// sem_t mutexChapas;        // Lock para chapasAluminio
+sem_t mutexLatasBasicas;  // Lock para latasBasicas
+sem_t mutexLatasPintadas; // Lock para latasPintadas
 
+// Semáforos utilizados como locks
+sem_t mutexProdMaq1;  // Lock para produção do ciclo de prodMaq1
+sem_t mutexProdMaq2;  // Lock para produção do ciclo de prodMaq2
+sem_t mutexProdMaq3;  // Lock para produção do ciclo de prodMaq3
+sem_t mutexProdTrans; // Lock para produção do ciclo de prodTrans
+
+// Barreira para o transporte e distribuição de latas
 pthread_barrier_t barreiraTransporte;
 
 // Thread máquina de criar chapas de alumínio
@@ -54,27 +60,26 @@ void* maqChapaAlumunio(void* id) {
     int i = *((int*)id);
 
     while (TRUE) {
-
-        sem_wait(&mutexChapas);
-
+        pthread_mutex_lock(&mutexChapas);
         if (chapasAluminio < CHAPAS) {
             chapasAluminio += 10;
 
             sem_wait(&mutexProdMaq1);
                 prodMaq1 += 10;
             sem_post(&mutexProdMaq1);
-
         }
+        if (chapasAluminio >= 50) {
+            pthread_cond_wait(&condChapas, &mutexChapas);
+        }
+        pthread_mutex_unlock(&mutexChapas);
 
-        sem_post(&mutexChapas);
+
 
         // Quando o ciclo de trabalho estiver completo, encerra a thread
         if (ciclo == getCicloProducao()) {
             pthread_exit(0);
         }
-
     }
-
 }
 
 // Thread máquina de transfomar chapa em lata básica
@@ -83,10 +88,11 @@ void* maqFazerLatinha(void* id) {
     int i = *((int*)id);
 
     while (TRUE) {
-
-        sem_wait(&mutexChapas);
+        pthread_mutex_lock(&mutexChapas);
         sem_wait(&mutexLatasBasicas);
-
+        if (chapasAluminio <= MINIMO_CHAPAS) {
+            pthread_cond_broadcast(&condChapas);
+        }
         if (chapasAluminio >= MINIMO_CHAPAS) {
             chapasAluminio -= MINIMO_CHAPAS;
             latasBasicas += EFICIENCIA_CONVERSAO_CHAPA_LATA;
@@ -96,17 +102,14 @@ void* maqFazerLatinha(void* id) {
             sem_post(&mutexProdMaq2);
 
         }
-
         sem_post(&mutexLatasBasicas);
-        sem_post(&mutexChapas);
+        pthread_mutex_unlock(&mutexChapas);
 
         // Quando o ciclo de trabalho estiver completo, encerra a thread
         if (ciclo == getCicloProducao()) {
             pthread_exit(0);
         }
-
     }
-
 }
 
 // Thread máquina de pintar latas
@@ -115,10 +118,8 @@ void* maqPintarLatinha(void* id) {
     int i = *((int*)id);
 
     while(TRUE) {
-
         sem_wait(&mutexLatasPintadas);
         sem_wait(&mutexLatasBasicas);
-
         if (latasBasicas >= MINIMO_LATAS_BASICAS) {
 
             latasBasicas -= MINIMO_LATAS_BASICAS;
@@ -127,7 +128,6 @@ void* maqPintarLatinha(void* id) {
             sem_wait(&mutexProdMaq3);
                 prodMaq3 += MINIMO_LATAS_BASICAS;
             sem_post(&mutexProdMaq3);
-
         }
 
         sem_post(&mutexLatasBasicas);
@@ -137,25 +137,20 @@ void* maqPintarLatinha(void* id) {
         if (ciclo == getCicloProducao()) {
             pthread_exit(0);
         }
-
     }
-
 }
 
+// Thread transporte e distribuição de latas
 void* transporteLata() {
 
     while(TRUE) {
-
         sem_wait(&mutexLatasPintadas);
-
         if (latasPintadas >= MINIMO_LATAS_TRANSPORTE) {
-
             latasPintadas -= MINIMO_LATAS_TRANSPORTE;
 
             sem_wait(&mutexProdTrans);
                 prodTrans += MINIMO_LATAS_TRANSPORTE;
             sem_post(&mutexProdTrans);
-
         }
         sem_post(&mutexLatasPintadas);
 
@@ -165,18 +160,14 @@ void* transporteLata() {
         if (ciclo == getCicloProducao()) {
             pthread_exit(0);
         }
-
     }
-
 }
 
-// Thread que verifica o status do ciclo de operação. A cada hora,
+// Thread que verifica o status do ciclo de operação
 void* cicloOperacao() {
 
     while (TRUE) {
-
         if (calculaHora()) {
-
             ciclo++;
 
             sem_wait(&mutexProdMaq1);
@@ -198,15 +189,12 @@ void* cicloOperacao() {
             sem_post(&mutexProdMaq3);
             sem_post(&mutexProdMaq2);
             sem_post(&mutexProdMaq1);
-
         }
 
         if (ciclo == getCicloProducao()) {
             pthread_exit(0);
         }
-
     }
-
 }
 
 
@@ -221,7 +209,7 @@ int main(int argc, char* argv[]) {
 
     pthread_t status;
 
-    sem_init(&mutexChapas, 0, 1);
+    // sem_init(&mutexChapas, 0, 1);
     sem_init(&mutexLatasBasicas, 0, 1);
     sem_init(&mutexLatasPintadas, 0, 1);
 
