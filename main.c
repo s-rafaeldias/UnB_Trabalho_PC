@@ -9,12 +9,13 @@
 #include "cicloTempo.h"
 #include "log.h"
 
-#define CHAPAS 100
+#define CHAPAS 100 // Default da quantidade de chapas iniciais
 
-#define MAQ1 4
-#define MAQ2 7
-#define MAQ3 10
-#define MAQ4 5
+// Definicao da quantidade de cada tipo de thread
+#define MAQ1 4  // Quantidade de Threads da máquina de criação de chapas de alumínio
+#define MAQ2 7  // Quantidade de Threads da máquina de criação de latas básicas
+#define MAQ3 10 // Quantidade de Threads da máquina de pintar latas
+#define MAQ4 5  // Quantidade de Threads de caminhões de transporte
 
 #define MINIMO_CHAPAS 10
 #define EFICIENCIA_CONVERSAO_CHAPA_LATA 200
@@ -27,11 +28,13 @@ int chapasAluminio = CHAPAS;
 int latasBasicas   = 0;
 int latasPintadas  = 0;
 
+// Variáveis para armazenamento da produção de cada tipo de máquina e do transporte
 int prodMaq1  = 0;
 int prodMaq2  = 0;
 int prodMaq3  = 0;
 int prodTrans = 0;
 
+// Variável para controle de ciclo de produção
 int ciclo = 0;
 
 sem_t mutexChapas;
@@ -205,6 +208,7 @@ void* cicloOperacao() {
     }
 
 }
+
 
 int main(int argc, char* argv[]) {
 
