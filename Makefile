@@ -21,8 +21,11 @@ cicloTempo.o: cicloTempo.h cicloTempo.c
 log.o: log.h log.c
 	$(CC) $(mode) log.c -c $(lib)
 
-full_clean: run_clean
+full_clean: run_clean file_clean
 	rm -f *.exe
+
+file_clean:
+	rm -f *.csv
 
 run_clean:
 	rm -f *.o
