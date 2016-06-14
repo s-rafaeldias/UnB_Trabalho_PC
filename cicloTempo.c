@@ -15,6 +15,7 @@ int getCicloProducao() {
 int setValues(char* arg) {
     int valorCiclo = atoi(arg);
     if (valorCiclo == 0) return 0;
+    if (valorCiclo >= 48) return 48; // Limite do ciclo de operação
     if (arg == NULL) return 24; // Ciclo default de 24h
     return valorCiclo;
 }

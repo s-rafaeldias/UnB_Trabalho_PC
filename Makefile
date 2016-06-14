@@ -4,7 +4,7 @@ name = main.exe
 lib  = -pthread
 ciclo = 24
 
-all: compile run run_clean
+all: compile
 
 run: $(name) run_clean
 	./$(name) $(ciclo)
@@ -25,4 +25,4 @@ full_clean: run_clean
 	rm -f *.exe
 
 run_clean:
-	rm -f *.o *.csv
+	rm -f *.o

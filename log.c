@@ -5,66 +5,46 @@
 #include <stdio.h>
 #include "log.h"
 
-static FILE* saida1;
-static FILE* saida2;
-static FILE* saida3;
-static FILE* saida4;
+static FILE* saida;
 
+static void abreArquivo(int file);
+void printLog(int file, int m[][48], int hora, int size);
 
-static void preencheBase(int hora, FILE* f) {
+////////////////////////////////////////////////////////////////////////////////////////////////////
+void printLog(int file, int m[][48], int hora, int size) {
 
-    fprintf(f, "Hora:,");
+  abreArquivo(file);
 
-    for (int i = 0; i <= hora; i++) {
-        fprintf(f, "%d,", i);
-    }
+  for (int i = 0; i < size; i++) {
+    for (int j = 0; j < hora; j++) {
+      fprintf(saida, "%d,", m[i][j]);
+    } // for j
+    fprintf(saida, "\n");
+  } // for i
 
-    fprintf(f, "\n");
-    fprintf(f, "Prod:,");
-}
-
-
-void baseLog(int hora) {
-
-    saida1 = fopen("log1.csv", "a+");
-    saida2 = fopen("log2.csv", "a+");
-    saida3 = fopen("log3.csv", "a+");
-    saida4 = fopen("log4.csv", "a+");
-
-    preencheBase(hora, saida1);
-    preencheBase(hora, saida2);
-    preencheBase(hora, saida3);
-    preencheBase(hora, saida4);
-
+  fclose(saida);
 
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////
+static void abreArquivo(int file) {
 
-void printaLog(int prod, int i) {
+  switch (file) {
+    case 1:
+      saida = fopen("log1.csv", "w");
+    break;
 
+    case 2:
+      saida = fopen("log2.csv", "w");
+    break;
 
-    switch (i) {
-        case 0:
-            fprintf(saida1, "%d,", prod);
-            break;
-        case 1:
-            fprintf(saida2, "%d,", prod);
-            break;
-        case 2:
-            fprintf(saida3, "%d,", prod);
-            break;
-        case 3:
-            fprintf(saida4, "%d,", prod);
-            break;
-        default:
-            break;
-    }
+    case 3:
+      saida = fopen("log3.csv", "w");
+    break;
 
+    case 4:
+      saida = fopen("log4.csv", "w");
+    break;
+  }
 
 }
-
-void encerraTudo() {
-    fclose(saida1);
-    fclose(saida2);
-    fclose(saida3);
-    fclose(saida4);
-}
+////////////////////////////////////////////////////////////////////////////////////////////////////

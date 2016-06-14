@@ -5,6 +5,7 @@
 
 #include <pthread.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <semaphore.h>
 #include "cicloTempo.h"
 #include "log.h"
@@ -30,10 +31,10 @@ int latasBasicas   = 0;
 int latasPintadas  = 0;
 
 // Variáveis para armazenamento da produção de cada tipo de máquina e do transporte
-int prodMaq1  = 0;
-int prodMaq2  = 0;
-int prodMaq3  = 0;
-int prodTrans = 0;
+int prodMaq1[MAQ1][48];
+int prodMaq2[MAQ2][48];
+int prodMaq3[MAQ3][48];
+int prodTrans[MAQ4][48];
 
 // Variável para controle de ciclo de produção
 int ciclo = 0;
@@ -55,6 +56,8 @@ sem_t mutexProdTrans; // Lock para produção do ciclo de prodTrans
 // Barreira para o transporte e distribuição de latas
 pthread_barrier_t barreiraTransporte;
 
+static void preencheMatriz(int m[][48], int linhas);
+////////////////////////////////////////////////////////////////////////////////////////////////////
 // Thread máquina de criar chapas de alumínio
 void* maqChapaAlumunio(void* id) {
 
@@ -66,7 +69,7 @@ void* maqChapaAlumunio(void* id) {
             chapasAluminio += 10;
 
             sem_wait(&mutexProdMaq1);
-                prodMaq1 += 10;
+                prodMaq1[i][ciclo] += 10;
             sem_post(&mutexProdMaq1);
         }
         if (chapasAluminio >= ECONOMIA_ENERGIA) {
@@ -80,7 +83,7 @@ void* maqChapaAlumunio(void* id) {
         }
     }
 }
-
+////////////////////////////////////////////////////////////////////////////////////////////////////
 // Thread máquina de transfomar chapa em lata básica
 void* maqFazerLatinha(void* id) {
 
@@ -97,7 +100,7 @@ void* maqFazerLatinha(void* id) {
             latasBasicas += EFICIENCIA_CONVERSAO_CHAPA_LATA;
 
             sem_wait(&mutexProdMaq2);
-                prodMaq2 += EFICIENCIA_CONVERSAO_CHAPA_LATA;
+                prodMaq2[i][ciclo] += EFICIENCIA_CONVERSAO_CHAPA_LATA;
             sem_post(&mutexProdMaq2);
 
         }
@@ -110,7 +113,7 @@ void* maqFazerLatinha(void* id) {
         }
     }
 }
-
+////////////////////////////////////////////////////////////////////////////////////////////////////
 // Thread máquina de pintar latas
 void* maqPintarLatinha(void* id) {
 
@@ -125,7 +128,7 @@ void* maqPintarLatinha(void* id) {
             latasPintadas += MINIMO_LATAS_BASICAS;
 
             sem_wait(&mutexProdMaq3);
-                prodMaq3 += MINIMO_LATAS_BASICAS;
+                prodMaq3[i][ciclo] += MINIMO_LATAS_BASICAS;
             sem_post(&mutexProdMaq3);
         }
 
@@ -138,9 +141,11 @@ void* maqPintarLatinha(void* id) {
         }
     }
 }
-
+////////////////////////////////////////////////////////////////////////////////////////////////////
 // Thread transporte e distribuição de latas
-void* transporteLata() {
+void* transporteLata(void* id) {
+
+    int i = *((int*)id);
 
     while(TRUE) {
         sem_wait(&mutexLatasPintadas);
@@ -148,7 +153,7 @@ void* transporteLata() {
             latasPintadas -= MINIMO_LATAS_TRANSPORTE;
 
             sem_wait(&mutexProdTrans);
-                prodTrans += MINIMO_LATAS_TRANSPORTE;
+                prodTrans[i][ciclo] += MINIMO_LATAS_TRANSPORTE;
             sem_post(&mutexProdTrans);
         }
         sem_post(&mutexLatasPintadas);
@@ -161,33 +166,13 @@ void* transporteLata() {
         }
     }
 }
-
+////////////////////////////////////////////////////////////////////////////////////////////////////
 // Thread que verifica o status do ciclo de operação
 void* cicloOperacao() {
 
     while (TRUE) {
         if (calculaHora()) {
             ciclo++;
-
-            sem_wait(&mutexProdMaq1);
-            sem_wait(&mutexProdMaq2);
-            sem_wait(&mutexProdMaq3);
-            sem_wait(&mutexProdTrans);
-
-                printaLog(prodMaq1, 0);
-                printaLog(prodMaq2, 1);
-                printaLog(prodMaq3, 2);
-                printaLog(prodTrans, 3);
-
-                prodMaq1  = 0;
-                prodMaq2  = 0;
-                prodMaq3  = 0;
-                prodTrans = 0;
-
-            sem_post(&mutexProdTrans);
-            sem_post(&mutexProdMaq3);
-            sem_post(&mutexProdMaq2);
-            sem_post(&mutexProdMaq1);
         }
 
         if (ciclo == getCicloProducao()) {
@@ -195,8 +180,7 @@ void* cicloOperacao() {
         }
     }
 }
-
-
+////////////////////////////////////////////////////////////////////////////////////////////////////
 int main(int argc, char* argv[]) {
 
     int* id;
@@ -208,7 +192,6 @@ int main(int argc, char* argv[]) {
 
     pthread_t status;
 
-    // sem_init(&mutexChapas, 0, 1);
     sem_init(&mutexLatasBasicas, 0, 1);
     sem_init(&mutexLatasPintadas, 0, 1);
 
@@ -221,9 +204,12 @@ int main(int argc, char* argv[]) {
 
     setCicloProducao(argc, argv);
 
-    startCiclo();
+    preencheMatriz(prodMaq1, MAQ1);
+    preencheMatriz(prodMaq2, MAQ2);
+    preencheMatriz(prodMaq3, MAQ3);
+    preencheMatriz(prodTrans, MAQ4);
 
-    baseLog(getCicloProducao());
+    startCiclo();
 
     // Loops para a criação da threads
     for (int i = 0; i < MAQ1; i++) {
@@ -242,7 +228,9 @@ int main(int argc, char* argv[]) {
         pthread_create(&maq3[i], NULL, maqPintarLatinha, (void*)id);
     }
     for (int i = 0; i < MAQ4; i++) {
-        pthread_create(&transporte[i], NULL, transporteLata, NULL);
+        id = (int*) malloc(sizeof(int));
+        *id = i;
+        pthread_create(&transporte[i], NULL, transporteLata, (void*)id);
     }
 
     pthread_create(&status, NULL, cicloOperacao, NULL);
@@ -264,13 +252,20 @@ int main(int argc, char* argv[]) {
 
     pthread_join(status, NULL);
 
-    printaLog(prodMaq1, 0);
-    printaLog(prodMaq2, 1);
-    printaLog(prodMaq3, 2);
-    printaLog(prodTrans, 3);
-
-    encerraTudo();
+    printLog(1, prodMaq1, getCicloProducao(), MAQ1);
+    printLog(2, prodMaq2, getCicloProducao(), MAQ2);
+    printLog(3, prodMaq3, getCicloProducao(), MAQ3);
+    printLog(4, prodTrans, getCicloProducao(), MAQ4);
 
     return 0;
 
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////
+static void preencheMatriz(int m[][48], int linhas) {
+  for (int i = 0; i < linhas; i++) {
+    for (int j = 0; j < 48; j++) {
+      m[i][j] = 0;
+    }
+  }
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////

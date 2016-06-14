@@ -5,8 +5,6 @@
 #ifndef TRABALHOPC_LOG_H
 #define TRABALHOPC_LOG_H
 
-void baseLog(int hora);
-void printaLog(int prod, int i);
-void encerraTudo();
+void printLog(int file, int m[][48], int hora, int size);
 
 #endif // TRABALHOPC_LOG_H
